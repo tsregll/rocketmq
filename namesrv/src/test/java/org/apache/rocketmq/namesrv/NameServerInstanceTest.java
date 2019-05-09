@@ -16,12 +16,13 @@
  */
 package org.apache.rocketmq.namesrv;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.rocketmq.common.namesrv.NamesrvConfig;
 import org.apache.rocketmq.remoting.netty.NettyServerConfig;
 import org.junit.After;
 import org.junit.Before;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class NameServerInstanceTest {
     protected NamesrvController nameSrvController = null;
@@ -43,5 +44,18 @@ public class NameServerInstanceTest {
             nameSrvController.shutdown();
         }
         //maybe need to clean the file store. But we do not suggest deleting anything.
+    }
+    
+    public static void main(String[] args) throws Exception {
+        // NamesrvConfig 配置
+        final NamesrvConfig namesrvConfig = new NamesrvConfig();
+        // NettyServerConfig 配置
+        final NettyServerConfig nettyServerConfig = new NettyServerConfig();
+        nettyServerConfig.setListenPort(9876); // 设置端口
+        // 创建 NamesrvController 对象，并启动
+        NamesrvController namesrvController = new NamesrvController(namesrvConfig, nettyServerConfig);
+        namesrvController.initialize();
+        namesrvController.start();
+        Thread.sleep(DateUtils.MILLIS_PER_DAY);
     }
 }
