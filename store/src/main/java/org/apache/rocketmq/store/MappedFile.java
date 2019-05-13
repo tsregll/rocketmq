@@ -49,7 +49,7 @@ public class MappedFile extends ReferenceResource {
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
     /**
-     * 已映射的虚拟内存的大小（并发安全）
+     * 已映射的虚拟内存的大小（并发安全）（字节数）
      */
     private static final AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY = new AtomicLong(0);
 
@@ -197,7 +197,9 @@ public class MappedFile extends ReferenceResource {
             this.fileChannel = new RandomAccessFile(this.file, "rw").getChannel();
             // 映射出文件的内存缓冲区
             this.mappedByteBuffer = this.fileChannel.map(MapMode.READ_WRITE, 0, fileSize);
+            // 增加总的虚拟内存数
             TOTAL_MAPPED_VIRTUAL_MEMORY.addAndGet(fileSize);
+            // 增加总的文件数
             TOTAL_MAPPED_FILES.incrementAndGet();
             ok = true;
         } catch (FileNotFoundException e) {
