@@ -42,20 +42,45 @@ import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
 public class MappedFile extends ReferenceResource {
+	/**
+	 * 系统内存页大小
+	 */
     public static final int OS_PAGE_SIZE = 1024 * 4;
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
+    /**
+     * 已映射的虚拟内存的大小（并发安全）
+     */
     private static final AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY = new AtomicLong(0);
 
+    /**
+     * 已映射的文件数量（并发安全）
+     */
     private static final AtomicInteger TOTAL_MAPPED_FILES = new AtomicInteger(0);
+    /**
+     * 消息写入的位置（并发安全）
+     */
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);
     //ADD BY ChenYang
+    /**
+     * 消息提交的位置（并发安全）
+     */
     protected final AtomicInteger committedPosition = new AtomicInteger(0);
+    
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
+    /**
+     * 文件大小
+     */
     protected int fileSize;
+    /**
+     * 读写文件的管道
+     */
     protected FileChannel fileChannel;
     /**
      * Message will put to here first, and then reput to FileChannel if writeBuffer is not null.
+     */
+    /**
+     * 如果writeBuffer不为空，则消息将首先放在此处，然后重新发送到fileChannel。
      */
     protected ByteBuffer writeBuffer = null;
     protected TransientStorePool transientStorePool = null;
@@ -78,10 +103,17 @@ public class MappedFile extends ReferenceResource {
         init(fileName, fileSize, transientStorePool);
     }
 
+    /**
+     * 确保文件夹没有问题
+     * 如果文件夹不存在则去创建一个文件夹
+     * @param dirName
+     */
     public static void ensureDirOK(final String dirName) {
         if (dirName != null) {
             File f = new File(dirName);
+            // 如果文件夹没有问题则创建文件夹
             if (!f.exists()) {
+            	// 创建文件夹
                 boolean result = f.mkdirs();
                 log.info(dirName + " mkdir " + (result ? "OK" : "Failed"));
             }
@@ -160,7 +192,10 @@ public class MappedFile extends ReferenceResource {
         ensureDirOK(this.file.getParent());
 
         try {
+        	// 创建文件的filechannel 关于RandomAccessFile 的介绍如下
+        	// https://www.cnblogs.com/baoliyan/p/6225842.html
             this.fileChannel = new RandomAccessFile(this.file, "rw").getChannel();
+            // 映射出文件的内存缓冲区
             this.mappedByteBuffer = this.fileChannel.map(MapMode.READ_WRITE, 0, fileSize);
             TOTAL_MAPPED_VIRTUAL_MEMORY.addAndGet(fileSize);
             TOTAL_MAPPED_FILES.incrementAndGet();
@@ -227,16 +262,24 @@ public class MappedFile extends ReferenceResource {
         return this.fileFromOffset;
     }
 
+    /**
+     * 给文件顺序添加内容
+     * @param data 消息数据
+     * @return
+     */
     public boolean appendMessage(final byte[] data) {
         int currentPos = this.wrotePosition.get();
 
         if ((currentPos + data.length) <= this.fileSize) {
             try {
+            	// 文件定位
                 this.fileChannel.position(currentPos);
+                // 文件写入
                 this.fileChannel.write(ByteBuffer.wrap(data));
             } catch (Throwable e) {
                 log.error("Error occurred when append message to mappedFile.", e);
             }
+            // 更新内容写入位置
             this.wrotePosition.addAndGet(data.length);
             return true;
         }
