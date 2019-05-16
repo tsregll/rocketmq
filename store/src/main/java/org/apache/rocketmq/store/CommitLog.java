@@ -91,12 +91,19 @@ public class CommitLog {
 
     }
 
+    /**
+     * 加载文件队列
+     * @return
+     */
     public boolean load() {
         boolean result = this.mappedFileQueue.load();
         log.info("load commit log " + (result ? "OK" : "Failed"));
         return result;
     }
 
+    /**
+     * 开始commitlog 刷盘服务
+     */
     public void start() {
         this.flushCommitLogService.start();
 
@@ -113,6 +120,10 @@ public class CommitLog {
         this.flushCommitLogService.shutdown();
     }
 
+    /**
+     * 刷盘
+     * @return
+     */
     public long flush() {
         this.mappedFileQueue.commit(0);
         this.mappedFileQueue.flush(0);

@@ -253,6 +253,7 @@ public class BrokerController {
             }
         }
 
+        // 加载消息存储
         result = result && this.messageStore.load();
 
         if (result) {

@@ -41,6 +41,7 @@ public class MappedFileQueue {
     // 映射文件大小
     private final int mappedFileSize;
 
+    // 映射文件队列
     private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
 
     private final AllocateMappedFileService allocateMappedFileService;
@@ -76,6 +77,11 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 根据时间来获取映射文件
+     * @param timestamp
+     * @return
+     */
     public MappedFile getMappedFileByTime(final long timestamp) {
         Object[] mfs = this.copyMappedFiles(0);
 
@@ -103,6 +109,10 @@ public class MappedFileQueue {
         return mfs;
     }
 
+    /**
+     * 删除脏文件？？（脏文件是啥意思？）
+     * @param offset
+     */
     public void truncateDirtyFiles(long offset) {
         List<MappedFile> willRemoveFiles = new ArrayList<MappedFile>();
 
@@ -123,6 +133,10 @@ public class MappedFileQueue {
         this.deleteExpiredFile(willRemoveFiles);
     }
 
+    /**
+     * 删除过期文件
+     * @param files
+     */
     void deleteExpiredFile(List<MappedFile> files) {
 
         if (!files.isEmpty()) {
@@ -146,6 +160,11 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 加载
+     * @return
+     * 
+     */
     public boolean load() {
         File dir = new File(this.storePath);
         File[] files = dir.listFiles();

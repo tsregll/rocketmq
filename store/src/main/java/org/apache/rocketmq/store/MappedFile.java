@@ -284,6 +284,8 @@ public class MappedFile extends ReferenceResource {
             // 更新内容写入位置
             this.wrotePosition.addAndGet(data.length);
             return true;
+        }else {
+        	System.out.println("oops file capacy has reached the limit !!");
         }
 
         return false;
@@ -529,6 +531,12 @@ public class MappedFile extends ReferenceResource {
         this.committedPosition.set(pos);
     }
 
+    /**
+     * 预热文件
+     * @param type
+     * @param pages
+     * 参考博文 ：https://www.jianshu.com/p/eaad6ec3f87c
+     */
     public void warmMappedFile(FlushDiskType type, int pages) {
         long beginTime = System.currentTimeMillis();
         ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
