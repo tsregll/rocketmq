@@ -266,6 +266,7 @@ public class MappedFile extends ReferenceResource {
 
     /**
      * 给文件顺序添加内容
+     * 写入到channel后文件立即可见效果
      * @param data 消息数据
      * @return
      */
@@ -366,6 +367,11 @@ public class MappedFile extends ReferenceResource {
         return this.committedPosition.get();
     }
 
+    /**
+     * 提交
+     * 即为将buffer 中的数据写入到fileChannel中即为提交
+     * @param commitLeastPages
+     */
     protected void commit0(final int commitLeastPages) {
         int writePos = this.wrotePosition.get();
         int lastCommittedPosition = this.committedPosition.get();

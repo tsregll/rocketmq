@@ -14,20 +14,21 @@ public class ByteBufferTest {
 
 	public static void main(String[] args) throws IOException {
 		int fileSize = 6;
-		String dataStr = "2hello byte buffer2";
+		String dataStr = "2hel";
 		File file = new File("target/000a");
 		FileChannel fileChannel = null;
 		MappedByteBuffer buffer = null;
 		try {
 		   fileChannel = new RandomAccessFile(file, "rw").getChannel();
 		   buffer = fileChannel.map(MapMode.READ_WRITE, 0, fileSize);
-		   fileChannel.position(0);
-		   fileChannel.write(ByteBuffer.wrap(dataStr.getBytes()));
-		   ByteBuffer byteBuffer = buffer.slice();
-		   byteBuffer.position(0);
-		   byte[] data = new byte[3] ;
-		   byteBuffer.get( data);
-		   System.out.println(new String(data));
+		   /*fileChannel.position(0);
+		   fileChannel.write(ByteBuffer.wrap(dataStr.getBytes()));*/
+		   buffer.put(dataStr.getBytes());
+//		   ByteBuffer byteBuffer = buffer.slice();
+//		   byteBuffer.position(0);
+//		   byte[] data = new byte[3] ;
+//		   byteBuffer.get( data);
+//		   System.out.println(new String(data));
 		}catch (FileNotFoundException e) {
 			System.out.println("create file channel Failed"+e);
 			throw e;
