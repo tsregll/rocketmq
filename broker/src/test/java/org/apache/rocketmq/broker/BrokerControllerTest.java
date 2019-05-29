@@ -68,6 +68,7 @@ public class BrokerControllerTest {
         messageStoreConfig.setFileReservedTime(48);
         messageStoreConfig.setFlushDiskType(FlushDiskType.ASYNC_FLUSH);
         messageStoreConfig.setDuplicationEnable(false);
+        messageStoreConfig.setMapedFileSizeCommitLog(1024 * 8);
 
 //            BrokerPathConfigHelper.setBrokerConfigPath("/Users/yunai/百度云同步盘/开发/Javascript/Story/incubator-rocketmq/conf/broker.conf");
         // 创建 BrokerController 对象，并启动
@@ -79,7 +80,7 @@ public class BrokerControllerTest {
         brokerController.initialize();
         brokerController.start();
         // 睡觉，就不起来
-        System.out.println("你猜");
+        System.out.println("启动喽！！");
         Thread.sleep(DateUtils.MILLIS_PER_DAY);
     }
 }

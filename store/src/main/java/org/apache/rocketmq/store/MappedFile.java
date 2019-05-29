@@ -18,6 +18,9 @@ package org.apache.rocketmq.store;
 
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
+
+import net.bytebuddy.asm.Advice.This;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -151,7 +154,7 @@ public class MappedFile extends ReferenceResource {
 
     private static ByteBuffer viewed(ByteBuffer buffer) {
         String methodName = "viewedBuffer";
-
+        
         Method[] methods = buffer.getClass().getMethods();
         for (int i = 0; i < methods.length; i++) {
             if (methods[i].getName().equals("attachment")) {
@@ -228,10 +231,12 @@ public class MappedFile extends ReferenceResource {
     }
 
     public AppendMessageResult appendMessage(final MessageExtBrokerInner msg, final AppendMessageCallback cb) {
+    	System.out.println("shaoguopeng ====> appendMessage invoke " + this.toString());
         return appendMessagesInner(msg, cb);
     }
 
     public AppendMessageResult appendMessages(final MessageExtBatch messageExtBatch, final AppendMessageCallback cb) {
+    	log.info("shaoguopeng ====> appendMessage Batch invoke"+ this.toString());
         return appendMessagesInner(messageExtBatch, cb);
     }
 
@@ -300,7 +305,7 @@ public class MappedFile extends ReferenceResource {
      */
     public boolean appendMessage(final byte[] data, final int offset, final int length) {
         int currentPos = this.wrotePosition.get();
-
+        
         if ((currentPos + length) <= this.fileSize) {
             try {
                 this.fileChannel.position(currentPos);
@@ -326,8 +331,10 @@ public class MappedFile extends ReferenceResource {
                 try {
                     //We only append data to fileChannel or mappedByteBuffer, never both.
                     if (writeBuffer != null || this.fileChannel.position() != 0) {
+                    	System.out.println("shaoguopeng ====> fileChannel flush Happen!! fileName:{}"+ this.toString());
                         this.fileChannel.force(false);
                     } else {
+                    	System.out.println("shaoguopeng ====> mappedByteBuffer flush Happen!! fileName:{}"+ this.toString());
                         this.mappedByteBuffer.force();
                     }
                 } catch (Throwable e) {
@@ -350,7 +357,11 @@ public class MappedFile extends ReferenceResource {
             return this.wrotePosition.get();
         }
         if (this.isAbleToCommit(commitLeastPages)) {
+
             if (this.hold()) {
+            	System.out.println("shaoguopeng ====> file commit Happen!! fileName:{}"+this.getFile().getName() + 
+            			" commitLeastPages:"+commitLeastPages + " fileCurrentWrotePosition" + this.getWrotePosition() 
+            			+ " fileFlushedPosition" + this.getFlushedPosition());
                 commit0(commitLeastPages);
                 this.release();
             } else {
@@ -377,6 +388,7 @@ public class MappedFile extends ReferenceResource {
         int lastCommittedPosition = this.committedPosition.get();
 
         if (writePos - this.committedPosition.get() > 0) {
+        	log.info("shaoguopeng ====> file commit Happen!! fileName:{}",this.getFile().getName());
             try {
                 ByteBuffer byteBuffer = writeBuffer.slice();
                 byteBuffer.position(lastCommittedPosition);
@@ -607,6 +619,7 @@ public class MappedFile extends ReferenceResource {
     }
 
     public void mlock() {
+    	System.out.println("shaoguopeng ====> mlock happened" + this.toString());
         final long beginTime = System.currentTimeMillis();
         final long address = ((DirectBuffer) (this.mappedByteBuffer)).address();
         Pointer pointer = new Pointer(address);
@@ -634,8 +647,20 @@ public class MappedFile extends ReferenceResource {
         return this.file;
     }
 
-    @Override
-    public String toString() {
-        return this.fileName;
-    }
+	@Override
+	public String toString() {
+		return "MappedFile [wrotePosition=" + wrotePosition + ", committedPosition=" + committedPosition
+				+ ", flushedPosition=" + flushedPosition + ", fileSize=" + fileSize + ", fileChannel=" + fileChannel
+				+ ", writeBuffer=" + writeBuffer + ", transientStorePool=" + transientStorePool + ", fileName="
+				+ fileName  + ", fileFromOffset=" + fileFromOffset + ", file=" + file + ", mappedByteBuffer="
+				+ mappedByteBuffer + ", storeTimestamp=" + storeTimestamp + ", firstCreateInQueue=" + firstCreateInQueue
+				+ "]";
+	}
+
+//    @Override
+//    public String toString() {
+//        return this.fileName;
+//    }
+    
+    
 }
