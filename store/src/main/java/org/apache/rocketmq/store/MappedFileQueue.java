@@ -446,6 +446,7 @@ public class MappedFileQueue {
     public boolean flush(final int flushLeastPages) {
         boolean result = true;
         MappedFile mappedFile = this.findMappedFileByOffset(this.flushedWhere, this.flushedWhere == 0);
+    	System.out.println("shaoguopeng ====> MappedFileQueue flush Happen!! "+ this.toString());
         if (mappedFile != null) {
             long tmpTimeStamp = mappedFile.getStoreTimestamp();
             int offset = mappedFile.flush(flushLeastPages);
@@ -629,4 +630,13 @@ public class MappedFileQueue {
     public void setCommittedWhere(final long committedWhere) {
         this.committedWhere = committedWhere;
     }
+
+	@Override
+	public String toString() {
+		return "MappedFileQueue [storePath=" + storePath + ", mappedFileSize=" + mappedFileSize + ", mappedFiles="
+				+ mappedFiles + ", allocateMappedFileService=" + allocateMappedFileService + ", flushedWhere="
+				+ flushedWhere + ", committedWhere=" + committedWhere + ", storeTimestamp=" + storeTimestamp + "]";
+	}
+    
+    
 }

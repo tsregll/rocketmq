@@ -657,6 +657,8 @@ public class MappedFile extends ReferenceResource {
 				+ "]";
 	}
 
+	
+	
 //    @Override
 //    public String toString() {
 //        return this.fileName;
