@@ -258,6 +258,10 @@ public class MappedFileQueue {
         return getLastMappedFile(startOffset, true);
     }
 
+    /**
+     * 获取最后一个映射文件
+     * @return
+     */
     public MappedFile getLastMappedFile() {
         MappedFile mappedFileLast = null;
 
@@ -446,7 +450,7 @@ public class MappedFileQueue {
     public boolean flush(final int flushLeastPages) {
         boolean result = true;
         MappedFile mappedFile = this.findMappedFileByOffset(this.flushedWhere, this.flushedWhere == 0);
-    	System.out.println("shaoguopeng ====> MappedFileQueue flush Happen!! "+ this.toString());
+    	//System.out.println("shaoguopeng ====> MappedFileQueue flush Happen!! "+ this.toString());
         if (mappedFile != null) {
             long tmpTimeStamp = mappedFile.getStoreTimestamp();
             int offset = mappedFile.flush(flushLeastPages);

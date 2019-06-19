@@ -70,7 +70,7 @@ public class BrokerControllerTest {
         messageStoreConfig.setDuplicationEnable(false);
         messageStoreConfig.setMapedFileSizeCommitLog(1024 * 8);
 
-//            BrokerPathConfigHelper.setBrokerConfigPath("/Users/yunai/百度云同步盘/开发/Javascript/Story/incubator-rocketmq/conf/broker.conf");
+        // BrokerPathConfigHelper.setBrokerConfigPath("/Users/yunai/百度云同步盘/开发/Javascript/Story/incubator-rocketmq/conf/broker.conf");
         // 创建 BrokerController 对象，并启动
         BrokerController brokerController = new BrokerController(//
                 brokerConfig, //
