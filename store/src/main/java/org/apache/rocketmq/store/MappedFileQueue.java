@@ -197,6 +197,10 @@ public class MappedFileQueue {
         return true;
     }
 
+    /**
+     * 注意该方法 没有直接引用者
+     * @return
+     */
     public long howMuchFallBehind() {
         if (this.mappedFiles.isEmpty())
             return 0;
