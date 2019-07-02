@@ -87,8 +87,10 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
 
                 RemotingCommand response;
                 if (requestHeader.isBatch()) {
+                	// 发送一批数据
                     response = this.sendBatchMessage(ctx, request, mqtraceContext, requestHeader);
                 } else {
+                	// 发送一条数据
                     response = this.sendMessage(ctx, request, mqtraceContext, requestHeader);
                 }
 
@@ -366,6 +368,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             }
             putMessageResult = this.brokerController.getTransactionalMessageService().prepareMessage(msgInner);
         } else {
+        	// 使用DefaultMessageStore 存储消息
             putMessageResult = this.brokerController.getMessageStore().putMessage(msgInner);
         }
 

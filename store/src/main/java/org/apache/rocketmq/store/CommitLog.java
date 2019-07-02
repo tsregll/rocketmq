@@ -82,6 +82,7 @@ public class CommitLog {
         // 初始化commitlog服务
         this.commitLogService = new CommitRealTimeService();
 
+        // 增加消息的回调函数
         this.appendMessageCallback = new DefaultAppendMessageCallback(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
         batchEncoderThreadLocal = new ThreadLocal<MessageExtBatchEncoder>() {
             @Override
@@ -89,6 +90,8 @@ public class CommitLog {
                 return new MessageExtBatchEncoder(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
             }
         };
+        
+        // 消息写入锁
         this.putMessageLock = defaultMessageStore.getMessageStoreConfig().isUseReentrantLockWhenPutMessage() ? new PutMessageReentrantLock() : new PutMessageSpinLock();
 
     }
@@ -696,6 +699,12 @@ public class CommitLog {
         }
     }
 
+    /**
+     * 处理高可用
+     * @param result
+     * @param putMessageResult
+     * @param messageExt
+     */
     public void handleHA(AppendMessageResult result, PutMessageResult putMessageResult, MessageExt messageExt) {
         if (BrokerRole.SYNC_MASTER == this.defaultMessageStore.getMessageStoreConfig().getBrokerRole()) {
             HAService service = this.defaultMessageStore.getHaService();
@@ -928,6 +937,11 @@ public class CommitLog {
         protected static final int RETRY_TIMES_OVER = 10;
     }
 
+    /**
+     * 实时提交文件服务
+     * @author Administrator
+     *
+     */
     class CommitRealTimeService extends FlushCommitLogService {
 
         private long lastCommitTimestamp = 0;
@@ -1211,7 +1225,10 @@ public class CommitLog {
         private final ByteBuffer hostHolder = ByteBuffer.allocate(8);
 
         DefaultAppendMessageCallback(final int size) {
+        	// 分配堆内存给msgId ByteBuffer 分配内存有两种方式
+        	// 分别是：分配堆内存 allocate，分配堆外内存 allocateDirect
             this.msgIdMemory = ByteBuffer.allocate(MessageDecoder.MSG_ID_LENGTH);
+            // 分配对内存给消息体
             this.msgStoreItemMemory = ByteBuffer.allocate(size + END_FILE_MIN_BLANK_LENGTH);
             this.maxMessageSize = size;
         }
@@ -1228,6 +1245,7 @@ public class CommitLog {
             long wroteOffset = fileFromOffset + byteBuffer.position();
 
             this.resetByteBuffer(hostHolder, 8);
+            // 创建messageId
             String msgId = MessageDecoder.createMessageId(this.msgIdMemory, msgInner.getStoreHostBytes(hostHolder), wroteOffset);
 
             // Record ConsumeQueue information

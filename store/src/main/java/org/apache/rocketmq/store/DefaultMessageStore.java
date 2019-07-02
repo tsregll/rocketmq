@@ -70,24 +70,34 @@ public class DefaultMessageStore implements MessageStore {
 
     private final FlushConsumeQueueService flushConsumeQueueService;
 
+    // 清理commit log 的服务
     private final CleanCommitLogService cleanCommitLogService;
 
+    // 清理消费队列的服务
     private final CleanConsumeQueueService cleanConsumeQueueService;
 
+    // 索引服务
     private final IndexService indexService;
 
+    // 映射文件分配服务
     private final AllocateMappedFileService allocateMappedFileService;
 
+    // 重写消息服务
     private final ReputMessageService reputMessageService;
 
+    // 高可用服务
     private final HAService haService;
 
+    // 定时消息服务
     private final ScheduleMessageService scheduleMessageService;
 
+    // 存储状态服务
     private final StoreStatsService storeStatsService;
 
+    // 内存池
     private final TransientStorePool transientStorePool;
 
+    
     private final RunningFlags runningFlags = new RunningFlags();
     private final SystemClock systemClock = new SystemClock();
 
@@ -149,7 +159,9 @@ public class DefaultMessageStore implements MessageStore {
 
         this.indexService.start();
 
+        // 消息分发者列表
         this.dispatcherList = new LinkedList<>();
+        // 提交日志分发者构建消费队列
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
 
@@ -175,6 +187,7 @@ public class DefaultMessageStore implements MessageStore {
         boolean result = true;
 
         try {
+        	// 判断上次退出是否OK
             boolean lastExitOK = !this.isTempFileExist();
             log.info("last shutdown {}", lastExitOK ? "normally" : "abnormally");
 
@@ -1327,6 +1340,10 @@ public class DefaultMessageStore implements MessageStore {
         return true;
     }
 
+    /**
+     * 恢复数据
+     * @param lastExitOK
+     */
     private void recover(final boolean lastExitOK) {
         long maxPhyOffsetOfConsumeQueue = this.recoverConsumeQueue();
 
@@ -1807,7 +1824,12 @@ public class DefaultMessageStore implements MessageStore {
             return DefaultMessageStore.this.commitLog.getMaxOffset() - this.reputFromOffset;
         }
 
+        /**
+         * 是否提交日志可用了
+         * @return
+         */
         private boolean isCommitLogAvailable() {
+        	// 通过比较reputFromOffset 与 commitLog 最大的偏移量
             return this.reputFromOffset < DefaultMessageStore.this.commitLog.getMaxOffset();
         }
 

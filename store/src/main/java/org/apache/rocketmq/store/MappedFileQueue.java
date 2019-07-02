@@ -58,6 +58,12 @@ public class MappedFileQueue {
         this.allocateMappedFileService = allocateMappedFileService;
     }
 
+    /**
+     * 文件自检
+     * 1.遍历文件列表
+     * 2.检查当前文件与上一个文件的offset的差值是否等于文件大小
+     * 3.若不等则打印异常，若相等则继续执行
+     */
     public void checkSelf() {
 
         if (!this.mappedFiles.isEmpty()) {
@@ -79,6 +85,10 @@ public class MappedFileQueue {
 
     /**
      * 根据时间来获取映射文件
+     * 1. 获取文件数组
+     * 2. 循环遍历文件数组
+     * 3. 判断文件的修改时间是否大于给定时间戳 如果大于返回，如果不大于则继续循环
+     * 4. 若循环完成仍未找到文件那么返回最后一个文件
      * @param timestamp
      * @return
      */
@@ -98,6 +108,11 @@ public class MappedFileQueue {
         return (MappedFile) mfs[mfs.length - 1];
     }
 
+    /**
+     * 拷贝文件数组
+     * @param reservedMappedFiles
+     * @return
+     */
     private Object[] copyMappedFiles(final int reservedMappedFiles) {
         Object[] mfs;
 
@@ -170,6 +185,7 @@ public class MappedFileQueue {
         File[] files = dir.listFiles();
         if (files != null) {
             // ascending order
+        	// 根据文件名升序排列文件
             Arrays.sort(files);
             for (File file : files) {
 
@@ -216,6 +232,15 @@ public class MappedFileQueue {
         return 0;
     }
 
+    /**
+     * 根据 消息起始offset 获取队列中的文件
+     * 1. 获取文件列表中的最后一个文件
+     * 2. 若没找到文件 则计算待创建文件的文件名（offset），公式：文件名（offset）= 消息起始offset - （消息起始offset 对 文件大小取余）
+     * 3. 若找到文件，则待创建文件名
+     * @param startOffset
+     * @param needCreate
+     * @return
+     */
     public MappedFile getLastMappedFile(final long startOffset, boolean needCreate) {
         long createOffset = -1;
         MappedFile mappedFileLast = getLastMappedFile();
@@ -263,7 +288,7 @@ public class MappedFileQueue {
     }
 
     /**
-     * 获取最后一个映射文件
+     * 返回文件队列中的最后一个映射文件
      * @return
      */
     public MappedFile getLastMappedFile() {
