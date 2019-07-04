@@ -236,7 +236,7 @@ public class MappedFileQueue {
      * 根据 消息起始offset 获取队列中的文件
      * 1. 获取文件列表中的最后一个文件
      * 2. 若没找到文件 则计算待创建文件的文件名（offset），公式：文件名（offset）= 消息起始offset - （消息起始offset 对 文件大小取余）
-     * 3. 若找到文件，则待创建文件名
+     * 3. 若找到文件且最后一个文件写满，则待创建文件名
      * @param startOffset
      * @param needCreate
      * @return
@@ -249,6 +249,9 @@ public class MappedFileQueue {
             createOffset = startOffset - (startOffset % this.mappedFileSize);
         }
 
+        // 如果文件队列中的最后一个文件不为空
+        // 且 最后一个文件已写满
+        // 则创建新的offset
         if (mappedFileLast != null && mappedFileLast.isFull()) {
             createOffset = mappedFileLast.getFileFromOffset() + this.mappedFileSize;
         }
@@ -339,6 +342,10 @@ public class MappedFileQueue {
         return true;
     }
 
+    /**
+     * 获取文件队列中最小的偏移量
+     * @return
+     */
     public long getMinOffset() {
 
         if (!this.mappedFiles.isEmpty()) {
@@ -353,6 +360,10 @@ public class MappedFileQueue {
         return -1;
     }
 
+    /**
+     * 获取文件队列中最大的偏移量
+     * @return
+     */
     public long getMaxOffset() {
         MappedFile mappedFile = getLastMappedFile();
         if (mappedFile != null) {
@@ -361,6 +372,10 @@ public class MappedFileQueue {
         return 0;
     }
 
+    /**
+     * 获取文件队列中最大的写入位置
+     * @return
+     */
     public long getMaxWrotePosition() {
         MappedFile mappedFile = getLastMappedFile();
         if (mappedFile != null) {
@@ -369,6 +384,10 @@ public class MappedFileQueue {
         return 0;
     }
 
+    /**
+     * 获取待提交数据的字节数
+     * @return
+     */
     public long remainHowManyDataToCommit() {
         return getMaxWrotePosition() - committedWhere;
     }
@@ -387,6 +406,14 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 根据时间来删除过期文件
+     * @param expiredTime
+     * @param deleteFilesInterval
+     * @param intervalForcibly
+     * @param cleanImmediately
+     * @return
+     */
     public int deleteExpiredFileByTime(final long expiredTime,
         final int deleteFilesInterval,
         final long intervalForcibly,
@@ -433,6 +460,12 @@ public class MappedFileQueue {
         return deleteCount;
     }
 
+    /**
+     * 根据偏移量删除过期文件
+     * @param offset
+     * @param unitSize
+     * @return
+     */
     public int deleteExpiredFileByOffset(long offset, int unitSize) {
         Object[] mfs = this.copyMappedFiles(0);
 

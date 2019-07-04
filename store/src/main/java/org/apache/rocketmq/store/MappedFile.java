@@ -123,12 +123,23 @@ public class MappedFile extends ReferenceResource {
         }
     }
 
+    /**
+     * 通过反射方式调用内存回收方法
+     * @param buffer
+     */
     public static void clean(final ByteBuffer buffer) {
         if (buffer == null || !buffer.isDirect() || buffer.capacity() == 0)
             return;
         invoke(invoke(viewed(buffer), "cleaner"), "clean");
     }
 
+    /**
+     * 通过反射调用某个方法
+     * @param target	  目标对象
+     * @param methodName 目标方法
+     * @param args		  方法参数
+     * @return
+     */
     private static Object invoke(final Object target, final String methodName, final Class<?>... args) {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
@@ -143,6 +154,14 @@ public class MappedFile extends ReferenceResource {
         });
     }
 
+    /**
+     * 通过反射获取某个类的方法
+     * @param target
+     * @param methodName
+     * @param args
+     * @return
+     * @throws NoSuchMethodException
+     */
     private static Method method(Object target, String methodName, Class<?>[] args)
         throws NoSuchMethodException {
         try {
@@ -170,14 +189,29 @@ public class MappedFile extends ReferenceResource {
             return viewed(viewedBuffer);
     }
 
+    /**
+     * 获取总的映射文件的数量
+     * @return
+     */
     public static int getTotalMappedFiles() {
         return TOTAL_MAPPED_FILES.get();
     }
 
+    /**
+     * 获取所有映射文件的虚拟内存加和
+     * @return
+     */
     public static long getTotalMappedVirtualMemory() {
         return TOTAL_MAPPED_VIRTUAL_MEMORY.get();
     }
 
+    /**
+     * 初始化文件（）
+     * @param fileName
+     * @param fileSize
+     * @param transientStorePool
+     * @throws IOException
+     */
     public void init(final String fileName, final int fileSize,
         final TransientStorePool transientStorePool) throws IOException {
         init(fileName, fileSize);
@@ -218,10 +252,18 @@ public class MappedFile extends ReferenceResource {
         }
     }
 
+    /**
+     * 获取文件最后更改的时间
+     * @return
+     */
     public long getLastModifiedTimestamp() {
         return this.file.lastModified();
     }
 
+    /**
+     * 获取文件大小
+     * @return
+     */
     public int getFileSize() {
         return fileSize;
     }
@@ -402,6 +444,15 @@ public class MappedFile extends ReferenceResource {
         }
     }
 
+    
+    /**
+     * 是否可以flush
+     * 1.如果文件满了，可以提交
+     * 2.如果请求flush的页数大于0，通过公式计算出 当前文件已写入内容的页数-已flush的内容的页数 是否大于请求提交的页数，如果大于则可以提交； 
+     * 3.如果请求flush的页数
+     * @param commitLeastPages
+     * @return
+     */
     private boolean isAbleToFlush(final int flushLeastPages) {
         int flush = this.flushedPosition.get();
         int write = getReadPosition();
@@ -417,6 +468,14 @@ public class MappedFile extends ReferenceResource {
         return write > flush;
     }
 
+    /**
+     * 是否可以提交
+     * 1.如果文件满了，可以提交
+     * 2.如果请求提交的页数大于0，通过公式计算出 当前文件已写入内容的页数-已flush的内容的页数 是否大于请求提交的页数，如果大于则可以提交； 
+     * 3.如果
+     * @param commitLeastPages
+     * @return
+     */
     protected boolean isAbleToCommit(final int commitLeastPages) {
         int flush = this.committedPosition.get();
         int write = this.wrotePosition.get();
@@ -571,6 +630,7 @@ public class MappedFile extends ReferenceResource {
             }
 
             // prevent gc
+            // 如何防止jc？
             if (j % 1000 == 0) {
                 log.info("j={}, costTime={}", j, System.currentTimeMillis() - time);
                 time = System.currentTimeMillis();
@@ -618,6 +678,9 @@ public class MappedFile extends ReferenceResource {
         this.firstCreateInQueue = firstCreateInQueue;
     }
 
+    /**
+     * 使用本地mlock函数锁定内存，防止被系统swap
+     */
     public void mlock() {
     	System.out.println("shaoguopeng ====> mlock happened" + this.toString());
         final long beginTime = System.currentTimeMillis();
@@ -634,6 +697,9 @@ public class MappedFile extends ReferenceResource {
         }
     }
 
+    /**
+     * 使用本地munlock函数解锁内存，允许系统回收内存
+     */
     public void munlock() {
         final long beginTime = System.currentTimeMillis();
         final long address = ((DirectBuffer) (this.mappedByteBuffer)).address();

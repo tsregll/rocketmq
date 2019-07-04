@@ -45,6 +45,7 @@ public class TransientStorePool {
 
     /**
      * It's a heavy init method.
+     * 这个初始化方法非常慢！！
      */
     public void init() {
         for (int i = 0; i < poolSize; i++) {
