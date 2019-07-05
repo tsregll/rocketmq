@@ -525,6 +525,11 @@ public class MappedFile extends ReferenceResource {
         return null;
     }
 
+    /**
+     * 查询缓冲区
+     * @param pos 缓冲位置
+     * @return
+     */
     public SelectMappedBufferResult selectMappedBuffer(int pos) {
         int readPosition = getReadPosition();
         if (pos < readPosition && pos >= 0) {
