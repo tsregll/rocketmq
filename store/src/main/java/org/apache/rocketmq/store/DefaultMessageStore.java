@@ -1495,8 +1495,15 @@ public class DefaultMessageStore implements MessageStore {
         }, 6, TimeUnit.SECONDS);
     }
 
+ 
     class CommitLogDispatcherBuildConsumeQueue implements CommitLogDispatcher {
 
+    	/**
+    	 * 执行调度请求
+    	 * 1. 非事务消息 或 事务提交消息 建立 消息位置信息 到 ConsumeQueue
+    	 * 2. 建立 索引信息 到 IndexFile
+    	 * @param request 调度请求
+    	 */
         @Override
         public void dispatch(DispatchRequest request) {
             final int tranType = MessageSysFlag.getTransactionValue(request.getSysFlag());
@@ -1792,10 +1799,9 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
-     * 重放消息服务
-     * 目的是：
-     * 1.检查commitlog的offset是否增加了
-     * 2.如果增加了，则读出新的消息，然后告知
+     * 说明：重放消息线程服务。
+     * 该服务不断生成 消息位置信息 到 消费队列(ConsumeQueue)
+     * 该服务不断生成 消息索引 到 索引文件(IndexFile)
      * @author Administrator
      *
      */
