@@ -161,8 +161,9 @@ public class DefaultMessageStore implements MessageStore {
 
         // 消息分发者列表
         this.dispatcherList = new LinkedList<>();
-        // 提交日志分发者构建消费队列
+        // 消费队列构建者
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
+        // 索引构建者
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
 
         File file = new File(StorePathConfigHelper.getLockFile(messageStoreConfig.getStorePathRootDir()));
@@ -1849,11 +1850,14 @@ public class DefaultMessageStore implements MessageStore {
          * @return
          */
         private boolean isCommitLogAvailable() {
-        	// 通过比较reputFromOffset 与 commitLog 最大的偏移量
+        	// 通过比较reputFromOffset 与 commitLog 最大的偏移量 来判断是否应该开始重放commitLog了
             return this.reputFromOffset < DefaultMessageStore.this.commitLog.getMaxOffset();
         }
 
         private void doReput() {
+            
+            // 判断重放偏移量是否比提交日志最小偏移量还小
+            // 如果还小，则将提交最小偏移量赋值给冲防骗一辆
             if (this.reputFromOffset < DefaultMessageStore.this.commitLog.getMinOffset()) {
                 log.warn("The reputFromOffset={} is smaller than minPyOffset={}, this usually indicate that the dispatch behind too much and the commitlog has expired.",
                     this.reputFromOffset, DefaultMessageStore.this.commitLog.getMinOffset());
@@ -1865,13 +1869,15 @@ public class DefaultMessageStore implements MessageStore {
                     && this.reputFromOffset >= DefaultMessageStore.this.getConfirmOffset()) {
                     break;
                 }
-
+                // 通过重放偏移量找到对应的对应的数据
                 SelectMappedBufferResult result = DefaultMessageStore.this.commitLog.getData(reputFromOffset);
                 if (result != null) {
                     try {
                         this.reputFromOffset = result.getStartOffset();
 
                         for (int readSize = 0; readSize < result.getSize() && doNext; ) {
+                            
+                            // 构建分发请求
                             DispatchRequest dispatchRequest =
                                 DefaultMessageStore.this.commitLog.checkMessageAndReturnSize(result.getByteBuffer(), false, false);
                             int size = dispatchRequest.getBufferSize() == -1 ? dispatchRequest.getMsgSize() : dispatchRequest.getBufferSize();
@@ -1882,7 +1888,7 @@ public class DefaultMessageStore implements MessageStore {
 
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
                                         && DefaultMessageStore.this.brokerConfig.isLongPollingEnable()) {
-                                    	// 通知消息到达
+                                    	// 告知 拉取请求保持服务 消息已经到达
                                         DefaultMessageStore.this.messageArrivingListener.arriving(dispatchRequest.getTopic(),
                                             dispatchRequest.getQueueId(), dispatchRequest.getConsumeQueueOffset() + 1,
                                             dispatchRequest.getTagsCode(), dispatchRequest.getStoreTimestamp(),
