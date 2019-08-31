@@ -1857,7 +1857,7 @@ public class DefaultMessageStore implements MessageStore {
         private void doReput() {
             
             // 判断重放偏移量是否比提交日志最小偏移量还小
-            // 如果还小，则将提交最小偏移量赋值给冲防骗一辆
+            // 如果还小，则将提交最小偏移量赋值给重放偏移量
             if (this.reputFromOffset < DefaultMessageStore.this.commitLog.getMinOffset()) {
                 log.warn("The reputFromOffset={} is smaller than minPyOffset={}, this usually indicate that the dispatch behind too much and the commitlog has expired.",
                     this.reputFromOffset, DefaultMessageStore.this.commitLog.getMinOffset());
