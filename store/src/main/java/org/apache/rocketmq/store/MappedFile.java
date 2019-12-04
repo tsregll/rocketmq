@@ -19,8 +19,6 @@ package org.apache.rocketmq.store;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 
-import net.bytebuddy.asm.Advice.This;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
