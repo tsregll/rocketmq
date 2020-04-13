@@ -14,7 +14,7 @@ public class ByteBufferTest {
 
 	public static void main(String[] args) throws IOException {
 		int fileSize = 6;
-		String dataStr = "2hel";
+		String dataStr = "asdfsd";
 		File file = new File("target/000a");
 		FileChannel fileChannel = null;
 		MappedByteBuffer buffer = null;
@@ -36,6 +36,7 @@ public class ByteBufferTest {
 			System.out.println("map file failed" + e);
 			throw e;
 		}finally {
+			//buffer.force();
 			if(fileChannel != null) {
 				fileChannel.close();
 			}

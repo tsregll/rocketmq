@@ -27,6 +27,20 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RemotingCommandTest {
+	@Test
+	public void testBit() {
+		int a = 2;
+		a >>= 1;
+		assertThat(a).isEqualTo(1);
+	}
+	
+	@Test
+	public void testAnd() {
+		int a = 0xFF;
+		a &= 0xFF;
+		assertThat(a).isEqualTo(0xFF);
+	}
+	
     @Test
     public void testMarkProtocolType_JSONProtocolType() {
         int source = 261;

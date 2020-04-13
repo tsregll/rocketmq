@@ -47,6 +47,7 @@ public class NameServerInstanceTest {
     }
     
     public static void main(String[] args) throws Exception {
+    	System.out.println(System.getProperty("user.home"));
         // NamesrvConfig 配置
         final NamesrvConfig namesrvConfig = new NamesrvConfig();
         // NettyServerConfig 配置
