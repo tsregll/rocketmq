@@ -143,6 +143,13 @@ public class RemotingCommand {
 
     public static RemotingCommand decode(final ByteBuffer byteBuffer) {
         int length = byteBuffer.limit();
+        // shaogupeng check header begin
+        byteBuffer.mark();
+        byte[] lengthData = new byte[16];
+        byteBuffer.get(lengthData);
+        System.out.println(lengthData);
+        byteBuffer.reset();
+        // shaogupeng check header stop
         int oriHeaderLen = byteBuffer.getInt();
         int headerLength = getHeaderLength(oriHeaderLen);
 

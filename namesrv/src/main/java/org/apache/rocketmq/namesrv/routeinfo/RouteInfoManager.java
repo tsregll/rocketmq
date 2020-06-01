@@ -51,7 +51,7 @@ public class RouteInfoManager {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final HashMap<String/* topic */, List<QueueData>> topicQueueTable;
     private final HashMap<String/* brokerName */, BrokerData> brokerAddrTable;
-    private final HashMap<String/* clusterName */, Set<String/* brokerName */>> clusterAddrTable;
+    private final HashMap<String/* clusterName */, Set<String/* brokerName */>> clusterAddrTable;//集群地址表
     private final HashMap<String/* brokerAddr */, BrokerLiveInfo> brokerLiveTable;
     private final HashMap<String/* brokerAddr */, List<String>/* Filter Server */> filterServerTable;
 
@@ -112,7 +112,7 @@ public class RouteInfoManager {
         try {
             try {
                 this.lock.writeLock().lockInterruptibly();
-
+                // 1、 将brokername记录下来
                 Set<String> brokerNames = this.clusterAddrTable.get(clusterName);
                 if (null == brokerNames) {
                     brokerNames = new HashSet<String>();
@@ -121,7 +121,7 @@ public class RouteInfoManager {
                 brokerNames.add(brokerName);
 
                 boolean registerFirst = false;
-
+                // 2、设置broker地址
                 BrokerData brokerData = this.brokerAddrTable.get(brokerName);
                 if (null == brokerData) {
                     registerFirst = true;
@@ -131,6 +131,9 @@ public class RouteInfoManager {
                 Map<Long, String> brokerAddrsMap = brokerData.getBrokerAddrs();
                 //Switch slave to master: first remove <1, IP:PORT> in namesrv, then add <0, IP:PORT>
                 //The same IP:PORT must only have one record in brokerAddrTable
+                // 
+                // 3.1 （处理地址不变，角色变化的broker信息）如果遇到broker角色由slave变为master的情况，需要首先将老的<id,地址>清除，然后添加新的<id,地址>
+                // 相同的ip：port 在brokerAddrTable中只能存在一条数据
                 Iterator<Entry<Long, String>> it = brokerAddrsMap.entrySet().iterator();
                 while (it.hasNext()) {
                     Entry<Long, String> item = it.next();
@@ -138,14 +141,14 @@ public class RouteInfoManager {
                         it.remove();
                     }
                 }
-
+                // 3.2 （处理地址变化的情况）判断是否是新老broker地址变化的情况然后得出是否是新注册broker的结论
                 String oldAddr = brokerData.getBrokerAddrs().put(brokerId, brokerAddr);
                 registerFirst = registerFirst || (null == oldAddr);
-
+                // 3.3 判断是否是主节点，然后判断传递过来的topic配置是否为空
                 if (null != topicConfigWrapper
                     && MixAll.MASTER_ID == brokerId) {
                     if (this.isBrokerTopicConfigChanged(brokerAddr, topicConfigWrapper.getDataVersion())
-                        || registerFirst) {
+                        || registerFirst) {// 如果主题配置更改了或者是首次注册，则更新主题信息
                         ConcurrentMap<String, TopicConfig> tcTable =
                             topicConfigWrapper.getTopicConfigTable();
                         if (tcTable != null) {
@@ -155,7 +158,7 @@ public class RouteInfoManager {
                         }
                     }
                 }
-
+                // 写入Broker活动信息
                 BrokerLiveInfo prevBrokerLiveInfo = this.brokerLiveTable.put(brokerAddr,
                     new BrokerLiveInfo(
                         System.currentTimeMillis(),
@@ -165,12 +168,12 @@ public class RouteInfoManager {
                 if (null == prevBrokerLiveInfo) {
                     log.info("new broker registered, {} HAServer: {}", brokerAddr, haServerAddr);
                 }
-
+                // 如果filterserver不为空则保存filtersrv信息
                 if (filterServerList != null) {
                     if (filterServerList.isEmpty()) {
-                        this.filterServerTable.remove(brokerAddr);
+                        this.filterServerTable.remove(brokerAddr); // 如果传来的filterServer为空则清空brokerAddre对应的filterServer列表
                     } else {
-                        this.filterServerTable.put(brokerAddr, filterServerList);
+                        this.filterServerTable.put(brokerAddr, filterServerList); //如果fileterServer不为空则更新filterServer列表
                     }
                 }
 
@@ -752,6 +755,9 @@ public class RouteInfoManager {
     }
 }
 
+/**
+ * 该勒种存放着broker的链接信息
+ */
 class BrokerLiveInfo {
     private long lastUpdateTimestamp;
     private DataVersion dataVersion;

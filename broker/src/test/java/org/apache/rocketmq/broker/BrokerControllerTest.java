@@ -61,7 +61,8 @@ public class BrokerControllerTest {
         // BrokerConfig 配置
         final BrokerConfig brokerConfig = new BrokerConfig();
         brokerConfig.setBrokerName("broker-a");
-        brokerConfig.setNamesrvAddr("127.0.0.1:9876");
+        //brokerConfig.setNamesrvAddr("127.0.0.1:9876");
+       brokerConfig.setNamesrvAddr("127.0.0.1:9001");
         // MessageStoreConfig 配置
         final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
         messageStoreConfig.setDeleteWhen("04");

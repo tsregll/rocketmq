@@ -48,7 +48,8 @@ public class Producer {
 	        /*
 	         * Launch the instance.
 	         */
-	        producer.setNamesrvAddr("127.0.0.1:9876"); // <x> 哈哈哈哈
+	        //producer.setNamesrvAddr("127.0.0.1:9876"); // <x> 哈哈哈哈
+	      producer.setNamesrvAddr("127.0.0.1:9001"); // <x> 哈哈哈哈
 	        producer.start();
 
 	        for (int i = 0; i < 1; i++) {
